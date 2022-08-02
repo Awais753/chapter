@@ -89,10 +89,17 @@ const EventForm: React.FC<EventFormProps> = (props) => {
     };
   }, []);
 
-  const { register, control, handleSubmit, watch, setValue, getValues } =
-    useForm<EventFormData>({
-      defaultValues,
-    });
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    getValues,
+    formState,
+  } = useForm<EventFormData>({
+    defaultValues,
+  });
 
   const {
     fields: sponsorFields,
@@ -127,7 +134,8 @@ const EventForm: React.FC<EventFormProps> = (props) => {
     [setValue, setStartDate],
   );
 
-  const isSaveBtnDisabled = !isFormEdited(defaultValues, watch()) || loading;
+  const isSaveBtnDisabled =
+    !isFormEdited(defaultValues, watch()) || loading || formState.isSubmitting;
   return (
     <>
       {loadingChapter ? (
@@ -151,12 +159,14 @@ const EventForm: React.FC<EventFormProps> = (props) => {
                   showTimeSelect
                   timeIntervals={5}
                   onChange={onDatePickerChange(field.key)}
+                  disabled={formState.isSubmitting}
                   dateFormat="MMMM d, yyyy h:mm aa"
                   customInput={
                     <Input
                       id={`${field.key}_trigger`}
                       name={`${field.key}`}
                       label={field.label}
+                      isDisabled={formState.isSubmitting}
                       value={
                         field.key === 'start_at'
                           ? startDate.toDateString()
@@ -172,6 +182,7 @@ const EventForm: React.FC<EventFormProps> = (props) => {
                 label={field.label}
                 placeholder={field.placeholder}
                 isRequired={field.isRequired}
+                isDisabled={formState.isSubmitting}
                 {...register(field.key)}
               />
             ) : (
@@ -181,6 +192,7 @@ const EventForm: React.FC<EventFormProps> = (props) => {
                 label={field.label}
                 placeholder={field.placeholder}
                 isRequired={field.isRequired}
+                isDisabled={formState.isSubmitting}
                 {...register(field.key)}
               />
             ),
@@ -189,6 +201,7 @@ const EventForm: React.FC<EventFormProps> = (props) => {
           <Checkbox
             data-cy="invite-only-checkbox"
             isChecked={inviteOnly}
+            disabled={formState.isSubmitting}
             onChange={(e) => setValue('invite_only', e.target.checked)}
           >
             Invite only
@@ -202,6 +215,7 @@ const EventForm: React.FC<EventFormProps> = (props) => {
                   <Radio
                     key={venueType.value}
                     value={venueType.value}
+                    isDisabled={formState.isSubmitting}
                     {...register('venue_type')}
                   >
                     {venueType.name}
@@ -218,7 +232,10 @@ const EventForm: React.FC<EventFormProps> = (props) => {
               isPhysical(getValues('venue_type')) && (
                 <FormControl isRequired>
                   <FormLabel>Venue</FormLabel>
-                  <Select {...register('venue_id')}>
+                  <Select
+                    {...register('venue_id')}
+                    isDisabled={formState.isSubmitting}
+                  >
                     {dataVenues.chapterVenues.map((v) => (
                       <option key={v.id} value={v.id}>
                         {v.name}
@@ -235,6 +252,7 @@ const EventForm: React.FC<EventFormProps> = (props) => {
                 type="url"
                 label="Streaming URL"
                 placeholder=""
+                isDisabled={formState.isSubmitting}
                 isRequired
                 {...register('streaming_url')}
               />
@@ -259,6 +277,7 @@ const EventForm: React.FC<EventFormProps> = (props) => {
                   }
                 }}
                 isDisabled={
+                  formState.isSubmitting ||
                   loadingSponsors ||
                   errorSponsor ||
                   !sponsorData ||
@@ -307,6 +326,7 @@ const EventForm: React.FC<EventFormProps> = (props) => {
                               sponsorsForThisType[0]?.id,
                             );
                           }}
+                          isDisabled={formState.isSubmitting}
                         >
                           {getAllowedSponsorTypes(
                             sponsorData,
@@ -343,6 +363,7 @@ const EventForm: React.FC<EventFormProps> = (props) => {
                               valueAsNumber: true,
                             },
                           )}
+                          isDisabled={formState.isSubmitting}
                         >
                           {getAllowedSponsorsForType(
                             sponsorData,
@@ -370,6 +391,8 @@ const EventForm: React.FC<EventFormProps> = (props) => {
               colorScheme="blue"
               type="submit"
               isDisabled={isSaveBtnDisabled}
+              isLoading={loading}
+              loadingText="Saving Changes"
             >
               {submitText}
             </Button>
@@ -377,6 +400,7 @@ const EventForm: React.FC<EventFormProps> = (props) => {
               <EventCancelButton
                 isFullWidth={true}
                 event={data}
+                isDisabled={formState.isSubmitting}
                 buttonText="Cancel this Event"
               />
             )}

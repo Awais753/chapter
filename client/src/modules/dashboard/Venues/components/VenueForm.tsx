@@ -112,7 +112,7 @@ const VenueForm: React.FC<VenueFormProps> = (props) => {
     latitude: venue?.latitude ?? undefined,
     longitude: venue?.longitude ?? undefined,
   };
-  const { handleSubmit, register } = useForm<VenueFormData>({
+  const { handleSubmit, register, formState } = useForm<VenueFormData>({
     defaultValues,
   });
 
@@ -135,6 +135,7 @@ const VenueForm: React.FC<VenueFormProps> = (props) => {
               step={step ? step : undefined}
               max={max ? max : undefined}
               min={min ? min : undefined}
+              isDisabled={formState.isSubmitting}
             />
           ))}
           <Button
@@ -143,7 +144,9 @@ const VenueForm: React.FC<VenueFormProps> = (props) => {
             variant="solid"
             colorScheme="blue"
             type="submit"
-            disabled={loading}
+            isDisabled={loading || formState.isSubmitting}
+            isLoading={loading}
+            loadingText="Saving Changes"
           >
             {submitText}
           </Button>
